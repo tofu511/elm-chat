@@ -1,6 +1,6 @@
 module Main exposing (..)
 
-import Html exposing (program, Html, div, img, text, textarea, button)
+import Html exposing (Html, button, div, img, program, text, textarea)
 import Html.Attributes exposing (src, value)
 import Styles as Styles
 import Html.Events exposing (onClick, onInput)
@@ -81,12 +81,12 @@ initUsers =
     , User "m2" "伊達ちゃん" "https://imgcp.aacdn.jp/img-c/680/auto/tipsplus/series/246/20160608_1465380998273.jpg"
     ]
 
+
 initTalks : List Talk
 initTalks =
     [ Talk "t1" "m2" "ピザ食いてえ" False "2018/01/27 13:00"
-    , Talk "t2" "m1" "ちょっと何言ってるかわかんないっす" False "2018/01/27 13:30"
+    , Talk "t2" "m1" "ちょっと何いってるかわかんないっす" False "2018/01/27 13:30"
     ]
-
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -126,8 +126,8 @@ view model =
     div [ Styles.mainWrap ]
         [ div [ Styles.postForm ]
             [ div [ Styles.formLeft ]
-              [ img [ Styles.selfImg, src "http://www.hochi.co.jp/photo/20170718/20170718-OHT1I50084-T.jpg" ] []
-              ]
+                [ img [ Styles.selfImg, src "http://www.hochi.co.jp/photo/20170718/20170718-OHT1I50084-T.jpg" ] []
+                ]
             , div [ Styles.formRight ]
               [ textarea [ Styles.formArea, value model.inputText, onInput ChangeInput ]  []
               , button [ Styles.postButton, onClick Add ] [ text "投稿！" ]
@@ -180,21 +180,25 @@ viewText model talk =
         textarea [ Styles.editingMessage, value talk.text, onInput <| UpdateMessage talk.id, onEnter <| Edit talk.id False ] []
 -}
 
+
+
 -- cf. 編集中はメッセージがtextarea表示になり、変更できるようになります
+
+
 viewEditingTalk : Html msg
 viewEditingTalk =
-        div [ Styles.talk ]
-            [ div [ Styles.talkLeft ]
-                [ img [ Styles.posterImg, src "http://www.hochi.co.jp/photo/20170718/20170718-OHT1I50084-T.jpg" ] [] ]
-            , div [ Styles.talkRight ]
-                [ div [ Styles.posterName ] [ text "とみざわ" ]
-                , textarea [ Styles.editingMessage, value "僕ちゃんとピッザって言いましたよ" ] []
-                , div [ Styles.talkFooter ]
-                    [ text "2018/01/27 13:30"
-                    , div [ Styles.buttons ]
-                        [ button [ Styles.editButton ] [ text "完了" ]
-                        , button [ Styles.deleteButton ] [ text "削除" ]
-                        ]
+    div [ Styles.talk ]
+        [ div [ Styles.talkLeft ]
+            [ img [ Styles.posterImg, src "http://www.hochi.co.jp/photo/20170718/20170718-OHT1I50084-T.jpg" ] [] ]
+        , div [ Styles.talkRight ]
+            [ div [ Styles.posterName ] [ text "とみざわ" ]
+            , textarea [ Styles.editingMessage, value "僕ちゃんとピッザって言いましたよ" ] []
+            , div [ Styles.talkFooter ]
+                [ text "2018/01/27 13:30"
+                , div [ Styles.buttons ]
+                    [ button [ Styles.editButton ] [ text "完了" ]
+                    , button [ Styles.deleteButton ] [ text "削除" ]
                     ]
                 ]
             ]
+        ]
