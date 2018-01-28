@@ -1,10 +1,10 @@
 module Main exposing (..)
 
-import Html exposing (Html, button, div, img, program, text, textarea)
+import Html exposing (Html, button, div, img, program, text, textarea, Attribute)
 import Html.Attributes exposing (src, value)
 import Styles as Styles
-import Html.Events exposing (onClick, onInput)
-
+import Html.Events exposing (onClick, onInput, on, keyCode)
+import Json.Decode as Json
 
 main : Program Never Model Msg
 main =
@@ -61,6 +61,7 @@ type Msg
     | Add
     | Delete String
     | Edit String Bool
+    | UpdateText String String
 
 init : ( Model, Cmd Msg )
 init =
@@ -118,6 +119,16 @@ update msg model =
                         talk
             in
                 { model | talks = List.map updateTalk model.talks } ! []
+        UpdateText id text ->
+            let
+                updateTalk talk =
+                    if talk.id == id then
+                        updateText text talk
+                    else 
+                        talk       
+            in
+            { model | talks = List.map updateTalk model.talks } ! []
+                
                 
 
 
@@ -152,7 +163,7 @@ viewTalk talk model =
                 [ img [ Styles.posterImg, src user.imageUrl ] [] ]
             , div [ Styles.talkRight ]
                 [ div [ Styles.posterName ] [ text user.name ]
-                , div [ Styles.message ] [ text talk.text ]
+                , viewText model talk
                 , div [ Styles.talkFooter ]
                     [ text talk.createAt
                     , viewEditButtons model talk ]
@@ -161,9 +172,16 @@ viewTalk talk model =
 
 viewEditButtons : Model -> Talk -> Html Msg
 viewEditButtons model talk =
+    let
+        editButtonText = 
+            if talk.isEditing then
+                "完了"
+            else
+                "編集"
+    in
     if isMine model talk then
         div [ Styles.buttons ]
-            [ button [ Styles.editButton, onClick <| Edit talk.id talk.isEditing ] [ text "編集"]
+            [ button [ Styles.editButton, onClick <| Edit talk.id ( not talk.isEditing ) ] [ text editButtonText ]
             , button [ Styles.deleteButton, onClick <| Delete talk.id] [ text "削除"]
             ]
     else
@@ -173,32 +191,20 @@ isMine : Model -> Talk -> Bool
 isMine model talk =
     model.myselfId == talk.userId
 
-{- メッセージ更新ロジック ~作成中~
 viewText : Model -> Talk -> Html Msg
 viewText model talk =
     if talk.isEditing then
-        textarea [ Styles.editingMessage, value talk.text, onInput <| UpdateMessage talk.id, onEnter <| Edit talk.id False ] []
--}
+        textarea [ Styles.editingMessage, value talk.text, onInput <| UpdateText talk.id, onEnter <| Edit talk.id False ] []
+    else
+        div [ Styles.message ] [ text talk.text ]
 
-
-
--- cf. 編集中はメッセージがtextarea表示になり、変更できるようになります
-
-
-viewEditingTalk : Html msg
-viewEditingTalk =
-    div [ Styles.talk ]
-        [ div [ Styles.talkLeft ]
-            [ img [ Styles.posterImg, src "http://www.hochi.co.jp/photo/20170718/20170718-OHT1I50084-T.jpg" ] [] ]
-        , div [ Styles.talkRight ]
-            [ div [ Styles.posterName ] [ text "とみざわ" ]
-            , textarea [ Styles.editingMessage, value "僕ちゃんとピッザって言いましたよ" ] []
-            , div [ Styles.talkFooter ]
-                [ text "2018/01/27 13:30"
-                , div [ Styles.buttons ]
-                    [ button [ Styles.editButton ] [ text "完了" ]
-                    , button [ Styles.deleteButton ] [ text "削除" ]
-                    ]
-                ]
-            ]
-        ]
+onEnter : Msg -> Attribute Msg
+onEnter msg =
+    let
+        msgIfEnter key =
+            if key == 13 then
+                Json.succeed msg
+            else 
+                Json.fail "not enter"
+    in
+        on "keydown" (Json.andThen msgIfEnter keyCode)
